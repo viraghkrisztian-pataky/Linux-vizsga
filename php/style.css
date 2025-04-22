@@ -1,0 +1,25 @@
+body {
+  background: linear-gradient(135deg, #283e51, #485563);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+.btn-success {
+  background-color: #4caf50;
+  border: none;
+}
+
+.btn-success:hover {
+  background-color: #388e3c;
+}
