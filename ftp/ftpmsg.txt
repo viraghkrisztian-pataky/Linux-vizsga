@@ -1,2 +1,2 @@
-Üdvözöllek a Linux Vizsgán!</h1>
+Üdvözöllek a Linux Vizsgán!
 Ez az üzenet a gyakorlati vizsga egyik feladata.
