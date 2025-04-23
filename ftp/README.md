@@ -1,5 +1,5 @@
 # Návtelen hozzáférés
 
-<Anonymous /mappa_neve><br>
+< Anonymous /mappa_neve><br>
 ...<br>
-</Anonymous><br>
+< /Anonymous>
