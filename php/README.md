@@ -1,0 +1,4 @@
+# PHPinfo használata
+<?php
+		phpinfo();
+?>
