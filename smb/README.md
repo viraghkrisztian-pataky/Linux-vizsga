@@ -1,5 +1,5 @@
 # Megosztott mappa
-**Kell külön samba user is**
+**Kell külön samba user is**<br>
 **Konfig:**<br>
 [mappa neve a megosztasban]<br>
 path = /utvonal/mappahoz<br>
