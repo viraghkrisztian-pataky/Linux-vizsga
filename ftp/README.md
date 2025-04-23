@@ -1,4 +1,4 @@
-# Návtelen hozzáférés
+# Névtelen hozzáférés
 
 < Anonymous /mappa_neve><br>
 ...<br>
