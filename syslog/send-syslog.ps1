@@ -1,103 +1,82 @@
-#requires -Version 2 -Modules NetTCPIP
+# Set up logging
+$ErrorActionPreference = "Stop"
+$DebugPreference = "Continue"
 
-Add-Type -TypeDefinition @"
-    public enum Syslog_Facility
-    {
-        kern, user, mail, daemon, auth, syslog, lpr, news, uucp,
-        clock, authpriv, ftp, ntp, logaudit, logalert, cron,
-        local0, local1, local2, local3, local4, local5, local6, local7
-    }
-"@
-
-Add-Type -TypeDefinition @"
-    public enum Syslog_Severity
-    {
-        Emergency, Alert, Critical, Error, Warning, Notice, Informational, Debug
-    }
-"@
-
-function Send-SyslogMessage {
-    [CMDLetBinding(DefaultParameterSetName = 'RFC5424')]
-    Param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server,
-
-        [Parameter(Mandatory = $true)]
+function Write-Log {
+    param(
         [string]$Message,
-
-        [Parameter(Mandatory = $true)]
-        [Syslog_Severity]$Severity,
-
-        [Parameter(Mandatory = $true)]
-        [Syslog_Facility]$Facility,
-
-        [string]$Hostname = '',
-        [string]$ApplicationName = '',
-        [string]$ProcessID = $PID,
-        [string]$MessageID = '-',
-        [string]$StructuredData = '-',
-        [datetime]$Timestamp = (Get-Date),
-        [UInt16]$UDPPort = 514,
-        [switch]$RFC3164
+        [string]$Level = "DEBUG"
     )
-
-    $Facility_Number = $Facility.value__
-    $Severity_Number = $Severity.value__
-    $Priority = ($Facility_Number * 8) + $Severity_Number
-
-    if ($ApplicationName -eq '') {
-        if (($null -ne $myInvocation.ScriptName) -and ($myInvocation.ScriptName -ne '')) {
-            $ApplicationName = Split-Path -Leaf -Path $myInvocation.ScriptName
-        } else {
-            $ApplicationName = 'PowerShell'
-        }
-    }
-
-    if ($Hostname -eq '') {
-        if ($null -ne $ENV:userdnsdomain) {
-            $Hostname = $ENV:Computername + '.' + $ENV:userdnsdomain
-        } elseif (($null -ne (Get-NetIPAddress -PrefixOrigin Manual -SuffixOrigin Manual -ErrorAction SilentlyContinue)) -and ((Test-NetConnection -ComputerName $Server -ErrorAction SilentlyContinue).SourceAddress.PrefixOrigin -eq 'Manual')) {
-            $Hostname = (Test-NetConnection -ComputerName $Server -ErrorAction SilentlyContinue).SourceAddress.IPAddress
-        } else {
-            $Hostname = $ENV:Computername
-        }
-    }
-
-    if ($PSCmdlet.ParameterSetName -eq 'RFC3164') {
-        $FormattedTimestamp = (Get-Culture).TextInfo.ToTitleCase($Timestamp.ToString('MMM dd HH:mm:ss'))
-        $FullSyslogMessage = "<{0}>{1} {2} {3} {4}" -f $Priority, $FormattedTimestamp, $Hostname, $ApplicationName, $Message
-    } else {
-        $FormattedTimestamp = $Timestamp.ToString('yyyy-MM-ddTHH:mm:ss.ffffffzzz')
-        $FullSyslogMessage = "<{0}>1 {1} {2} {3} {4} {5} {6} {7}" -f $Priority, $FormattedTimestamp, $Hostname, $ApplicationName, $ProcessID, $MessageID, $StructuredData, $Message
-    }
-
-    $Encoding = [System.Text.Encoding]::ASCII
-    $ByteSyslogMessage = $Encoding.GetBytes($FullSyslogMessage)
-
-    if ($ByteSyslogMessage.Length -gt 1024) {
-        $ByteSyslogMessage = $ByteSyslogMessage.SubString(0, 1024)
-    }
-
-    $UDPClient = New-Object System.Net.Sockets.UdpClient
-    $UDPClient.Connect($Server, $UDPPort)
-    $null = $UDPClient.Send($ByteSyslogMessage, $ByteSyslogMessage.Length)
-    $UDPClient.Close()
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Write-Debug "$timestamp - $Level - $Message"
 }
 
-# --- ÚJ rész: interaktív futás ---
-$TargetIP = Read-Host "Add meg a cél SYSLOG szerver IP-címét"
-$ComputerName = $env:COMPUTERNAME
+function Send-SyslogMessage {
+    param(
+        [string]$Message,
+        [string]$Program,
+        [int]$Facility = 1,
+        [int]$Severity = 6
+    )
+    $SYSLOG_SERVER = '127.0.0.1'
+    $SYSLOG_PORT = 514
 
-# Lekérjük a lokális IPv4 címet (nem loopback)
-$LocalIP = (Get-NetIPAddress -AddressFamily IPv4 |
-    Where-Object { $_.IPAddress -notlike '127.*' -and $_.PrefixOrigin -ne 'WellKnown' } |
-    Select-Object -First 1 -ExpandProperty IPAddress)
+    $priority = ($Facility * 8) + $Severity
+    $timestamp = Get-Date -Format "MMM dd HH:mm:ss"
+    $hostname = [System.Net.Dns]::GetHostName()
+    $syslog_message = "<{0}>{1} {2} {3}: {4}" -f $priority, $timestamp, $hostname, $Program, $Message
 
-# Üzenet formázása
-$MessageText = "SIKER:$ComputerName-$LocalIP"
+    try {
+        $udpClient = New-Object System.Net.Sockets.UdpClient
+        $udpClient.Connect($SYSLOG_SERVER, $SYSLOG_PORT)
+        $encodedMessage = [System.Text.Encoding]::UTF8.GetBytes($syslog_message)
+        $udpClient.Send($encodedMessage, $encodedMessage.Length) | Out-Null
+        Write-Log "Sent message: $syslog_message"
+        
+        # Debug: Print the full message
+        Write-Host "Full message sent: $syslog_message"
+    }
+    catch {
+        Write-Log "Failed to send message: $_" -Level "ERROR"
+    }
+    finally {
+        $udpClient.Close()
+    }
+}
 
-Write-Host "Küldés SYSLOG szerverre: $TargetIP"
-Write-Host "Üzenet: $MessageText"
+function Generate-TestLogs {
+$Username = $env:USERNAME
+$Hostname = $env:COMPUTERNAME
+$CurrentTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$special_logs = @(
+		@{Program="Linux vizsga"; Message="[$Username][$Hostname][$CurrentTime] Message success"},
+		@{Program="Linux vizsga"; Message="Exam is successfully:[$CurrentTime]"}		
+	)
 
-# Syslog üzenet küldése Informational szinten, local0 facility-vel
-Send-SyslogMessage -Server $TargetIP -Message $MessageText -Severity Informational -Facility local0
+    while ($true) {
+        try {
+            # Generate a special log message
+            $logEntry = $special_logs | Get-Random
+            $program = $logEntry.Program
+            $message = $logEntry.Message
+            Send-SyslogMessage -Message $message -Program $program
+
+            # Wait for a random interval between 1 and 5 seconds
+            Start-Sleep -Seconds (Get-Random -Minimum 1 -Maximum 5)
+        }
+        catch {
+            Write-Log "Error in Generate-TestLogs: $_" -Level "ERROR"
+        }
+    }
+}
+
+Write-Host "Starting to generate test logs. Press Ctrl+C to stop."
+try {
+    Generate-TestLogs
+}
+catch [System.Management.Automation.PipelineStoppedException] {
+    Write-Host "`nStopped generating test logs."
+}
+catch {
+    Write-Log "Unexpected error: $_" -Level "ERROR"
+}
