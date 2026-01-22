@@ -17,7 +17,24 @@ Streams → Rules
 Szűrés: syslog_severity
 Dashboard → severity alapú widgetek
 
-Ez a scripted tökéletes:
-✅ teszteléshez
-✅ stresszhez
-✅ dashboard validáláshoz
+SYSLOG üzenet:
+
+Mit jelent ez pontosan?
+A PRI = (facility * 8) + severity.
+
+severity (0–7) → a színt adja Graylogban
+→ severity = PRI % 8 (maradékos osztás 8-cal)
+facility (0–23) → logforrás kategória
+→ facility = PRI / 8 (egész osztás)
+
+Példák a képedről:
+
+<14> → 14 % 8 = 6 → Informational (6)
+14 / 8 = 1 → facility user-level (1)
+<8> → 8 % 8 = 0 → Emergency (0)
+<11> → 11 % 8 = 3 → Error (3)
+<12> → 12 % 8 = 4 → Warning (4)
+<15> → 15 % 8 = 7 → Debug (7)
+
+Ez az a szám, ami alapján a Graylog színezi a sorokat.
+
