@@ -8,7 +8,7 @@
     Színes naplózás, dinamikus üzenetek, kulturált leállítás.
 
 .EXAMPLE
-    .\eventsgen.ps1 -SyslogServer "192.168.1.10" -SyslogPort 514 -MessageCount 20
+    .\event.ps1 -SyslogServer "192.168.1.10" -SyslogPort 514 -MessageCount 20
 	
 .POWERSHELL DEBUG
 	Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
