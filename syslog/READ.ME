@@ -1,2 +1,23 @@
 # Futtatáshoz
-Használja a powershell -ExecutionPolicy Bypass -File .\eventsgen.ps1 parancsot
+Használja a powershell -ExecutionPolicy Bypass -File .\script-neve.ps1 parancsot
+
+Syslog severity értékek (RFC szerint):
+Severity	Jelentés	Graylog szín 
+0	Emergency	sötétpiros
+1	Alert	piros
+2	Critical	piros
+3	Error	narancs
+4	Warning	sárga
+5	Notice	világos kék
+6	Informational	zöld
+7	Debug	szürke
+
+Graylog oldali javaslat (erősen ajánlott)
+Streams → Rules
+Szűrés: syslog_severity
+Dashboard → severity alapú widgetek
+
+Ez a scripted tökéletes:
+✅ teszteléshez
+✅ stresszhez
+✅ dashboard validáláshoz
