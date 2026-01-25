@@ -49,8 +49,61 @@ Az egész folyamat együtt
 
 ------------------------------------------------------------------------
 0. Rendszer előkészítése
+
+Pontos idő:
+timedatectl set-timezone Europe/Budapest
+ellenőrzés:
+timedatectl
 apt update && apt upgrade -y
-apt install gpg curl netcat-openbsd
+apt install gpg curl netcat-openbsd chrony -y
+
+NTP szerverek beállítása:
+
+nano /etc/chrony/chrony.conf
+
+# Use Debian vendor zone.
+# pool 2.debian.pool.ntp.org iburst
+# Magyar NTP pool szerverek
+pool 0.hu.pool.ntp.org iburst
+pool 1.hu.pool.ntp.org iburst
+pool 2.hu.pool.ntp.org iburst
+pool 3.hu.pool.ntp.org iburst
+
+Mentés utén
+systemctl restart chrony
+systemctl enable chrony
+
+Ellenőrzés:
+chronyc sources
+chronyc tracking
+
+chronyc sources kimenet
+
+A lista az aktuálisan használt NTP szerverekről mutatja az információkat.
+
+Oszlopok jelentése:
+MS Name/IP address → a szerver neve vagy IP-je
+Stratum → a szerver hierarchiában elfoglalt szintje (1 = referenciaóra, 2 = közvetlen csatlakozás 1-eshez, stb.)
+Poll → a frissítési intervallum (hatvány 2 másodpercben)
+Reach → 8 bites szám, jelzi az utolsó 8 próbálkozás sikerességét (17 = 0b11111 → mind sikerült)
+LastRx → az utolsó csomag érkezésének ideje (másodperc)
+Last sample → a legutóbbi eltérés a szerverhez képest
+A ^* jel azt mutatja, hogy ez a szerver az aktuálisan kiválasztott referencia szerver, amihez a rendszer szinkronizálódik.
+A ^+ jel azt jelzi, hogy ez a szerver “lehetséges alternatíva” a szinkronizáláshoz.
+A ^- jel pedig azt jelzi, hogy a szerver jelenleg nem aktív a szinkronizálásban.
+
+chronyc tracking kimenet
+
+Reference ID → az a szerver, amivel szinkronban vagy
+Stratum → hierarchiai szint (3-as, tehát a géped közvetve kapcsolódik a referenciaórához)
+System time → a géped aktuális eltérése az NTP időhöz képest (nálad ~38 nanomásodperc, tökéletes)
+RMS offset → átlagos eltérés, nagyon kicsi, tehát szinkronban van
+Leap status → Normal, minden rendben, nincs ugrás
+
+Legyen a Debian az NTP szerver a hálózaton:
+
+
+
 
 mkdir -p /etc/apt/keyrings/
 wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
