@@ -40,6 +40,13 @@ Lehetőségek:
 
 Használata: gyorsan láthatod, ha hibák történnek, vagy trendeket követhetsz.
 
+Az egész folyamat együtt
+
+1. syslog-ng gyűjti a logokat a gépről vagy hálózatról.
+2. A logokat Promtail figyeli, címkézi, és továbbküldi Loki-nak.
+3. Loki tárolja a logokat hatékonyan.
+4. Grafana pedig a Loki-ra csatlakozva vizualizálja a logokat.
+
 ------------------------------------------------------------------------
 0. Rendszer előkészítése
 apt update && apt upgrade -y
