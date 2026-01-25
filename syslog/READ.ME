@@ -1,7 +1,50 @@
-# Debian + Syslog-NG + Loki + Grafana
+# Debian + Syslog-NG + Promtail + Loki + Grafana
 
+1️⃣ syslog-ng – a loggyűjtő
+
+A syslog-ng a hagyományos syslog-szolgáltatások továbbfejlesztett változata.
+
+Feladata:
+- Gyűjti a logokat a helyi gépről vagy hálózaton keresztül (pl. más szerverekről).
+- Tetszőleges helyre irányíthatja őket: fájl, adatbázis, vagy akár TCP/UDP protokollon más loggyűjtő felé.
+
+2️⃣ Promtail – a Loki „ügynöke”
+
+A Promtail a Loki adatbázishoz küldi a logokat.
+
+Feladata:
+- Figyeli a logfájlokat (pl. /var/log/messages, vagy syslog-ng által létrehozott fájlokat).
+- Feldolgozza a logokat (pl. címkékkel látja el őket: host, service, app).
+- Továbbítja őket a Loki felé HTTP API-n keresztül.
+
+Lényeg: a Loki nem tud magától fájlokat olvasni, ezért kell neki a Promtail vagy más ügynök.
+
+3️⃣ Loki – a log-adatbázis
+
+A Loki egy log-centrikus adatbázis a Grafana fejlesztőitől.
+
+Fő tulajdonságai:
+- Indexelés minimalizált: csak a címkéket indexeli, így nagyon gyors és skálázható.
+- Tömöríti a logokat, kevesebb helyet foglal, mint egy teljesen indexelt rendszer (pl. Elasticsearch).
+
+Logok itt tárolódnak, később Grafana-ban lehet őket vizualizálni.
+
+4️⃣ Grafana – a vizualizációs réteg
+
+A Grafana a Loki logjait olvassa és jeleníti meg.
+
+Lehetőségek:
+- Keresés kulcsszavak, időintervallum vagy címkék alapján.
+- Dashbordok készítése logminták alapján.
+- Más metrikus adatokkal (pl. Prometheus) egy helyen kombinálni.
+
+Használata: gyorsan láthatod, ha hibák történnek, vagy trendeket követhetsz.
+
+------------------------------------------------------------------------
+0. Rendszer előkészítése
 apt update && apt upgrade -y
-apt install gpg
+apt install gpg curl netcat-openbsd
+
 mkdir -p /etc/apt/keyrings/
 wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
 echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | tee /etc/apt/sources.list.d/grafana.list
@@ -100,11 +143,17 @@ Belépés utén
     	connection url: http://localhost:3100
     	majd save & test => Ha zöld, akkor jó :)
 Tesztelés
+
 Linux rendszeren:
 SYSLOG_PORT=514 ./syslog_test.sh
 SYSLOG_SERVER="192.168.1.10" ./syslog_test.sh
 
+Windows rendszeren:
+.\event2.ps1 -SyslogServer "192.168.1.10" -SyslogPort 514 -MessageCount 20
 
+LOGOK megnézése
+    Home > Drilldown > Logs
+A "refresh" gomb mellett átállítom 5s értékre és 5 másodpercenként automatikusan frissúl a lista.
 
 
 # Futtatáshoz
