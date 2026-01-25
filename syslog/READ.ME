@@ -91,6 +91,18 @@ http://192.168.109.DEBIAN-cime:3000
 Felhasználónév: admin
 Jelszó: admin
 
+Elfelejtett jelszó
+grafana-cli admin reset-admin-password ujjelszo
+
+Belépés utén
+    Home > Connections > Data sources -> add data sources
+    kivalasztom: LOKI
+    	connection url: http://localhost:3100
+    	majd save & test => Ha zöld, akkor jó :)
+Tesztelés
+Linux rendszeren:
+SYSLOG_PORT=514 ./syslog_test.sh
+SYSLOG_SERVER="192.168.1.10" ./syslog_test.sh
 
 
 
