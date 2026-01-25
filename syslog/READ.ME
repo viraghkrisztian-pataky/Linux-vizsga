@@ -66,6 +66,35 @@ ls -l /var/log/remote/
 FONTOS!
 A promtail kell, hogy tudja olvasni a messages.log fájl-t.
 
+promtail konfig-ba:
+
+nano -l /etc/promtail/config.yml
+__path__: /var/log/remote/*.log
+
+systemctl restart promtail && systemctl status promtail
+
+------------------------------------------------------------------------
+3. Grafana telepítése
+
+apt install apt-transport-https software-properties-common grafana -y
+
+systemctl enable grafana-server (hogy automatikusan induljon majd el)
+systemctl start grafana-server
+
+Tesztelés
+journalctl -u promtail -f
+ss -tulnp | grep 3000
+curl http://127.0.0.1:3000 (a 3000 a default port(
+
+Ha minde rendben, akkor:
+http://192.168.109.DEBIAN-cime:3000
+Felhasználónév: admin
+Jelszó: admin
+
+
+
+
+
 # Futtatáshoz
 Használja a powershell -ExecutionPolicy Bypass -File .\script-neve.ps1 parancsot
 
