@@ -117,8 +117,9 @@ Linux:   ntpdate -q debian-ip
 
 Windows powershell:    Test-NetConnection -ComputerName 192.168.50.10 -Port 123 -InformationLevel Detailed -Udp
                         ntp-test.ps1
+Ha minden rendben, akkor a klienseknek beállítom ezt a servert, hogy a naplófájlok ezzel a közös idővel készüljenek el.
 
-
+Mielőtt elkezdenénk a telepítést, a grafana nem alapértelmezett csomag a debian linuxon, így a szükséges tárolót hozzá kell adni: 
 mkdir -p /etc/apt/keyrings/
 wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
 echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | tee /etc/apt/sources.list.d/grafana.list
