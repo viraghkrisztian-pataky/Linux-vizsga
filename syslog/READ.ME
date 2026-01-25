@@ -1,7 +1,46 @@
 # Debian + Syslog-NG + Loki + Grafana
-```
+
 apt update && apt upgrade -y
-```
+apt install gpg
+wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | tee /etc/apt/sources.list.d/grafana.list
+apt update
+apt install syslog-ng -y
+
+könyvtár a külső LOG érkezéséhez
+mkdir -p /var/log/remote
+
+felhasználó létrehozása
+adduser loguser
+addgrp loggroup
+
+chown loguser:loggroup /var/log/remote
+
+# Syslog-NG konfigutálása
+nano -l /etc/syslog-ng/syslog-ng.conf
+
+28. sor - hogy külső IP címekről is érkezhessen syslog
+source s_net {
+    syslog(ip(0.0.0.0) transport("udp"));
+    syslog(ip(0.0.0.0) transport("tcp"));
+};
+
+
+65. sor a mappa, ahova érkeznek a külső syslog-ok
+destination d_messages {
+    file("/var/log/remote/messages.log");
+};
+összekapcsolom a naplózást -> ami kívülről érkezik -> mehet a mappába
+log {
+    source(s_net);
+    destination(d_messages);
+};
+
+systemctl restart syslog-ng && systemctl status syslog-ng
+
+
+
+
 
 
 
