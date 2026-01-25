@@ -102,7 +102,21 @@ Leap status → Normal, minden rendben, nincs ugrás
 
 Legyen a Debian az NTP szerver a hálózaton:
 
+nano /etc/chrony/chrony.conf
 
+a fájl végér:
+# Engedélyezés a belső hálózatra
+allow 192.168.MYLAN.0/24
+
+systemctl restart chrony
+
+Ellenőrzés egy másik gépről
+
+Linux:   ntpdate -q debian-ip
+        nc -vz -u debian-ip 123
+
+Windows powershell:    Test-NetConnection -ComputerName 192.168.50.10 -Port 123 -InformationLevel Detailed -Udp
+                        ntp-test.ps1
 
 
 mkdir -p /etc/apt/keyrings/
