@@ -1,1 +1,129 @@
 https://github.com/championshuttler/docker-basicLearning
+Docker sajat
+apt update
+apt upgrade -y
+
+apt install ca-certificates curl gnupg lsb-release gpg -y
+
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+systemctl enable docker
+systemctl start docker
+
+#ellenőrzés
+
+docker --version
+
+# felhasználó hozzáadása
+
+usermod -aG docker krisz
+
+# sima felhasználóként, hogy ne kelljen ki- majd be jelentkezni.
+krisz$ newgrp docker
+
+# az első teszt docker futtatása
+
+docker run hello-world
+
+# kiírja a válasz üzenetet
+
+
+# 2. teszt
+
+docker run -d -p 8080:80 nginx
+# böngészőbe http://debian-ip:8080/
+
+# fontos parancsok
+docker ps          # futó konténerek
+docker ps -a	# minden konténer
+docker images	# image-ek
+docker stop ID	# megállítja
+docker start ID	# elindítja
+docker rm ID	# törli
+docker rmi IMAGE	# a képfájl-t törli a gépről
+
+
+DE image törlése TILOS (és nem is lehet), ha konténer létezik belőle
+docker ps -a
+docker rm 019dc0684854-> konténer_ID vagy docker rm hello-container
+és ezek után
+docker rmi hello-world
+
+esetleg, de csak ha biztos minden: 
+docker rmi -f hello-world
+
+IMAGE beszerzése
+
+https://hub.docker.com/r/uzyexe/tetris -> megnézem / elolvasom mire való
+docker pull uzyexe/tetris -> a "run in desktop" domb melletti 3 pötty
+# ellenörzés
+docker images
+# futtatás
+docker run -d -p 8080:80 (-p gazdport:belsoport-tobb is lehet egyszerre)uzyexe/tetris:latest pl -p 8080:80 -p 8443:443 -p 2222:22
+
+a teljes beállítás ellenőrzése
+
+docker inspect  cranky_jackson
+
+
+belépés konténerbe
+docker exec -it /bin/bash	# azaz milyen parancsot szeretnék benne futtatni
+docker exec -it /bin/sh		# sokszor nincs bash
+
+
+
+docker stop ...
+docker rm ...
+docker rmi ...
+
+
+
+Docker web-szerver külső adatokkal
+
+mkdir ~/web
+nano ~/web/index.html
+
+webesartalom
+nano index.html
+
+futtatás - BIND MOUNT - fejlesztéshez
+docker run -d -p 8081:80 -v /root/web:/usr/local/apache2/htdocs --name apache-live httpd:2.4
+
+docker run -d \
+ -p 8080:80 -v ~/web:/var/www/html php:8.2-apache # ha kell php is
+ 
+ Tulajdonság	bind mount	docker volume
+Hol van	te mappád (pl ~/web)	Docker kezeli
+Élő frissítés	✅ azonnali	✅ azonnali
+Backup	kézzel	könnyebb
+Jogosultság	néha macerás	tisztább
+Oktatás	látványos	profi adatkezelés
+Production	ritkán	igen
+ 
+A saját mappa helye:
+/var/lib/docker/volumes/....
+
+1. Volume létrehozása
+docker volume create webdata
+
+2. Apache indítás volume-mal
+docker run -d -p 8080:80 -v webdata:/usr/local/apache2/htdocs --name apache-volume httpd:2.4
+
+3. Hol vannak a fájlok?
+
+Docker oldalon:
+
+ls /var/lib/docker/volumes/webdata/_data
+nano /var/lib/docker/volumes/webdata/_data/index.html
+
+pl: adatbázis, wiki adatok, éles rendszer
+
+
+
+
+
