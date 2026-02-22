@@ -1,3 +1,14 @@
+DE CSAK PHP 7.4-EL MEGY
+php -v
+PHP 8.2.29 (cli) (built: Jul  3 2025 16:16:05) (NTS)
+Copyright (c) The PHP Group
+Zend Engine v4.2.29, Copyright (c) Zend Technologies
+    with Zend OPcache v8.2.29, Copyright (c), by Zend Technologies
+
+tail -n 30 /var/log/apache2/error.log
+PHP Fatal error: Array and string offset access syntax with curly braces is no longer supported
+
+
 apt install apache2 -y
 systemctl enable apache2
 systemctl start apache2
