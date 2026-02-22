@@ -1,0 +1,83 @@
+rainloop
+
+install
+apt install apache2 php php-curl php-mbstring php-xml php-zip unzip -y
+
+ellenorzes
+php -m
+ezek kellenek:
+curl, mbstring, json, xml, openssl, zip,
+
+nano /etc/apache2/apache2.conf
+
+A fájl végére írd be:
+ServerName mail.barack.hu
+
+systemctl restart apache2
+
+ellenorzes:
+apache2ctl -M | grep php
+ php_module (shared)
+
+
+
+rainloop
+mkdir /var/www/html/rainloop
+cd rainloop
+wget https://www.rainloop.net/repository/webmail/rainloop-latest.zip
+unzip rainloop-latest.zip
+chown -R www-data:www-data *
+
+
+teszt:
+http://mail.barack.hu/rainloop/?admin
+
+admin és 12345
+
+A warning data megoldása apache2 alatt
+nano /etc/apache2/apache2.conf
+
+<Directory /var/www/>
+        Options Indexes FollowSymLinks
+        AllowOverride All (None -> All)
+        Require all granted
+</Directory>
+
+systemctl restart apache2
+
+
+nano /var/www/html/rainloop/data/.htaccess
+Require all denied
+
+systemctl restart apache2
+
+ellenorzes:
+http://mail.barack.hu/rainloop/data/
+
+
+Egy másik megoldás:
+nano /etc/apache2/apache2.conf
+
+És add hozzá a végére:
+
+<Directory /var/www/html/rainloop/data>
+    Require all denied
+</Directory>
+
+majd Restart:
+
+systemctl restart apache2
+
+Admin felületen belépve
+DOMAINS -> add -> mail.batack.hu (nincs smtp hitelesites)
+
+a hosts fájlban nlegyen 127.0.0.1 mail.barack.hu
+
+tesztelem a kapcsolatot.
+
+
+
+
+
+
+
