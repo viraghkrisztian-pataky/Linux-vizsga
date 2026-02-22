@@ -1,0 +1,23 @@
+apt install apache2 -y
+systemctl enable apache2
+systemctl start apache2
+apt install php libapache2-mod-php 
+php-mysql php-curl php-gd php-intl php-pear php-imagick php-imap 
+php-pspell php-recode php-tidy php-xmlrpc -y
+systemctl restart apache2
+
+cd /tmp && wget https://unlimited.dl.sourceforge.net/project/squirrelmail/stable/1.4.22/squirrelmail-webmail-1.4.22.tar.gz
+tar xvf squirrelmail-webmail-1.4.22.tar.gz
+mkdir /var/www/html/sqmail
+mv squirrelmail-*/* /var/www/html/sqmail/
+chown -R www-data:www-data /var/www/html/sqmail/
+cd /var/www/html/sqmail/config/
+cp config_default.php config.php
+chown -R www-data:www-data config.php 
+
+nano config.php
+    • $domain = 'mail.barack.hu'; 
+    • $imap_server = 'localhost'; 
+    • $smtp_server = 'localhost'; 
+http://mail.barack.hu/sqmail
+
