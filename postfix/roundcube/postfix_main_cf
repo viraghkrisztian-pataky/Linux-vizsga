@@ -1,0 +1,7 @@
+nano /etc/postfix/main.cf
+
+Keresd meg (vagy add hozzá):
+
+myhostname = mail.alma.hu
+mydomain = alma.hu
+myorigin = $mydomain
