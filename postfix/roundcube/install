@@ -1,0 +1,133 @@
+https://kifarunix.com/how-to-install-and-setup-roundcube-webmail-on-debain/
+
+apt install apache2 libapache2-mod-php -y
+systemctl enable --now apache2
+apt install php php-mcrypt php-mysql php-gd php-xml php-mbstring php-intl php-zip php-json php-pear php-curl php-imagick openssl composer -y
+apt install php php-{mcrypt,mysql,gd,xml,mbstring,intl,zip,json,pear,curl,imagick} openssl composer -y
+pear channel-update pear.php.net
+pear install Net_SMTP Net_IDNA2-0.1.1 Mail_mime Mail_mimeDecode
+pear install channel://pear.php.net/Auth_SASL2-0.2.0
+apt update
+cd /tmp
+wget https://github.com/roundcube/roundcubemail/releases/download/1.6.13/roundcubemail-1.6.13-complete.tar.gz
+tar xzf /tmp/roundcubemail-1.6.13-complete.tar.gz -C /var/www/roundcube --strip-components 1
+chown -R www-data:www-data /var/www/roundcube/
+chmod -R 775 /var/www/roundcube/{temp,logs}
+
+nano /etc/apache2/sites-available/roundcube.conf
+
+<VirtualHost *:80>
+        ServerName roundcube.kifarunix-demo.com
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/roundcube
+
+	<Directory /var/www/roundcube>
+		Options +FollowSymLinks
+		AddType text/x-component .htc
+		<IfModule mod_php8.c>
+			php_flag        display_errors  Off
+			php_flag        log_errors      On
+			php_value       upload_max_filesize     10M
+			php_value       post_max_size           12M
+			php_value       memory_limit            64M
+			php_flag        zlib.output_compression         Off
+			php_flag        magic_quotes_gpc                Off
+			php_flag        magic_quotes_runtime            Off
+			php_flag        zend.ze1_compatibility_mode     Off
+			php_flag        suhosin.session.encrypt         Off
+			php_flag        session.auto_start      Off
+			php_value       session.gc_maxlifetime  21600
+			php_value       session.gc_divisor      500
+			php_value       session.gc_probability  1
+		</IfModule>
+		<IfModule mod_rewrite.c>
+			RewriteEngine On
+			RewriteRule ^favicon\.ico$ skins/larry/images/favicon.ico
+			RewriteRule ^(?!installer)(\.?[^\.]+)$ - [F]
+			RewriteRule ^/?(\.git|\.tx|SQL|bin|config|logs|temp|tests|program\/(include|lib|localization|steps)) - [F]
+			RewriteRule /?(README\.md|composer\.json-dist|composer\.json|package\.xml)$ - [F]
+		</IfModule>
+		<IfModule mod_deflate.c>
+			SetOutputFilter DEFLATE
+		</IfModule>
+		<IfModule mod_headers.c>
+			# replace 'append' with 'merge' for Apache version 2.2.9 and later
+			# Header append Cache-Control public env=!NO_CACHE
+		</IfModule>
+		<IfModule mod_expires.c>
+			ExpiresActive On
+			ExpiresDefault "access plus 1 month"
+		</IfModule>
+		FileETag MTime Size
+		<IfModule mod_autoindex.c>
+			Options -Indexes
+		</ifModule>
+		AllowOverride None
+		Order allow,deny
+		Allow from all
+	</Directory>
+	
+	<Directory /var/www/roundcube/plugins/enigma/home>
+		Options -FollowSymLinks
+		AllowOverride None
+		Order allow,deny
+		Deny from all
+	</Directory>
+	<Directory /var/www/roundcube/config>
+		Options -FollowSymLinks
+		AllowOverride None
+		Order allow,deny
+		Deny from all
+	</Directory>
+	<Directory /var/www/roundcube/temp>
+		Options -FollowSymLinks
+		AllowOverride None
+		Order allow,deny
+		Deny from all
+	</Directory>
+	<Directory /var/www/roundcube/logs>
+		Options -FollowSymLinks
+		AllowOverride None
+		Order allow,deny
+		Deny from all
+	</Directory>
+        ErrorLog ${APACHE_LOG_DIR}/roundcube-error.log
+        CustomLog ${APACHE_LOG_DIR}/roundcube-access.log combined
+</VirtualHost>
+
+
+apachectl -t
+a2dissite 000-default
+a2ensite roundcube
+a2enmod deflate expires headers rewrite
+systemctl restart apache2
+
+ADATBÁZIS beállítások
+mysql_secure_installation (sok NO)
+mysql -u root -p -e "create database roundcube;"
+mysql -u root -p -e "create user admin@localhost identified by 'ChangeME';"
+mysql -u root -p -e "grant all privileges on roundcube.* to admin@localhost;"
+mysql -u root -p -e 'flush privileges';
+mysql -u root -p roundcube < /var/www/roundcube/SQL/mysql.initial.sql
+
+
+Configure PHP
+
+phpenmod mbstring xml dom mcrypt intl
+php -m | egrep "mbs|int|dom|xml"
+sed -i 's/^;date.timezone =/date.timezone = Europe\/Budapest/g' /etc/php/8.2/apache2/php.ini
+
+Configure Roundcube on Debian 12
+cp /var/www/roundcube/config/config.inc.php{.sample,}
+chown www-data:www-data /var/www/roundcube/config/config.inc.php
+nano /var/www/roundcube/config/config.inc.php
+
+így nézzen ki.
+https://github.com/viraghkrisztian-pataky/Linux-vizsga/blob/main/postfix/roundcube/config_config.inc.php
+
+$config['db_dsnw'] = 'mysql://admin:ChangeME@localhost/roundcube';
+$config['smtp_host'] = 'localhost';
+$config['smtp_port'] = 25;
+$config['smtp_user'] = '';
+$config['smtp_pass'] = '';
+
