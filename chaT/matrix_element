@@ -1,4 +1,5 @@
 FROM: https://i12bretro.github.io/tutorials/0640.html
+OR GITHUB: https://github.com/AmirDez/matrix-on-premise
 sudo apt update
 # install synapse
 sudo apt install matrix-synapse-py3 -y
