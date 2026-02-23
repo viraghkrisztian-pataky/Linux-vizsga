@@ -1,0 +1,84 @@
+https://www.youtube.com/watch?v=KIBg6Ai-xRg
+
+Installing Synapse
+   01. Log into the Linux device
+   02. Run the following commands in terminal
+         update software repositories
+         sudo apt update
+         install available software updates
+         sudo apt upgrade
+         install prerequisites
+         sudo apt install lsb-release wget openssl apt-transport-https -y
+         add matrix gpg key
+         sudo wget -O /usr/share/keyrings/matrix-org-archive-keyring.gpg https://packages.matrix.org/debian/ma...
+         add matrix apt repository
+         echo "deb [signed-by=/usr/share/keyrings/matrix-org-archive-keyring.gpg] https://packages.matrix.org/debian/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/matrix-org.list
+         update software repositories
+         sudo apt update
+         install synapse
+         sudo apt install matrix-synapse-py3 -y
+         when prompted, enter localhost as the name of the matrix server
+         choose whether to share statistics with matrix
+         install postgresql
+         sudo apt install libpq5 postgresql -y
+         enable the postgresql service and start it
+         sudo systemctl enable postgresql --now
+         connect to postgresql
+         sudo -u postgres psql postgres
+         create synapse database user
+         create user matrix_synapse_rw with password 'm@trix!';
+         create matrix_synapse database
+         create database matrix_synapse with encoding='UTF8' lc_collate='C' lc_ctype='C' template='template0' owner='matrix_synapse_rw';
+         close postgresql connection
+         exit
+         edit the homeserver.yaml file
+         sudo nano /etc/matrix-synapse/homeserver.yaml
+   03. Press CTRL+W and search for name: sqlite3
+   04. Comment out the sqlite database parameters by adding a # to the beginning of each of the lines
+   05. Paste the following psycopg2 (Postgres) database connection and update it as needed:
+         database:
+          name: psycopg2
+          txn_limit: 10000
+          args:
+           user: matrix_synapse_rw
+           password: m@trix!
+           database: matrix_synapse
+           host: localhost
+           port: 5432
+           cp_min: 5
+           cp_max: 10
+   06. Press CTRL+W and search for name: bind_addresses: [
+   07. Edit the bind addresses value to add either the host servers IP address or set the value to '0.0.0.0' to listen on all interfaces
+   08. Add the following line at the bottom of the file
+         suppress_key_server_warning: true
+   09. Press CTRL+O, Enter, CTRL+X to write the changes
+   10. Continue with the following commands
+         generate a randoml string
+         RANDOMSTRING=$(openssl rand -base64 30)
+         write the random string as registration_shared_secret
+         echo "registration_shared_secret: $RANDOMSTRING" | sudo tee -a /etc/matrix-synapse/homeserver.yaml ≫ /dev/null
+         restart the synapse service
+         sudo systemctl restart matrix-synapse
+         create a new synapse user
+         register_new_matrix_user -c /etc/matrix-synapse/homeserver.yaml http://localhost:8008
+   11. Enter a username, enter and confirm the password and choose if the user is an admin
+   12. At this point the Matrix Synapse server is running, but only over http
+   13. Open a web browser and navigate to the http://DNSorIP:8008
+   14. A message stating It works! Synapse is running should be displayed
+ 
+Testing with Element Desktop Application (Optional)
+   01. To test the Synapse server with a matrix client, continue with the following commands
+         add the element.io gpg key
+         sudo wget -O /usr/share/keyrings/element-io-archive-keyring.gpg https://packages.element.io/debian/el...
+         add the element.io apt repository
+         echo "deb [signed-by=/usr/share/keyrings/element-io-archive-keyring.gpg] https://packages.element.io/debian/ default main" | sudo tee /etc/apt/sources.list.d/element-io.list
+         update software repositories
+         sudo apt update
+         install element desktop
+         sudo apt install element-desktop -y
+   02. Launch the Element application
+   03. Click Sign In
+   04. Click the Edit link next to matrix.org
+
+
+....Full steps can be found on GitHub [link at the top]
