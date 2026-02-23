@@ -1,0 +1,108 @@
+Cypht telepítése Debian 12 + Nginx alatt
+
+apt update && apt upgrade -y
+
+Telepítsd a szükséges csomagokat:
+apt install nginx php-fpm php-cli php-curl php-xml php-mbstring php-zip php-gd git unzip -y
+
+Ellenőrzés:
+php -v
+nginx -v
+
+1. Cypht letöltése
+cd /var/www
+git clone https://github.com/cypht-org/cypht.git
+chown -R www-data:www-data cypht
+
+Ellenőrzés:
+ls -l /var/www/cypht
+
+2. Cypht telepítése (setup futtatása)
+cd /var/www/cypht
+su www-data php ./scripts/install.php
+
+Ez létrehozza a konfigurációs fájlokat:
+
+site.ini
+config.ini
+modules/*
+
+Ellenőrzés:
+ls htdocs
+
+3. PHP-FPM beállítása
+nano /etc/php/8.2/fpm/php.ini
+
+ezeket kell beállítani:
+cgi.fix_pathinfo = 0
+upload_max_filesize = 20M
+post_max_size = 20M
+
+systemctl restart php8.2-fpm
+
+4. Nginx virtuális host létrehozása
+nano /etc/nginx/sites-available/cypht.conf
+
+Tartalom:
+server {
+    listen 80;
+    server_name mail.example.com;
+
+    root /var/www/cypht/htdocs;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+
+
+Engedélyezd:
+ln -s /etc/nginx/sites-available/cypht.conf /etc/nginx/sites-enabled/
+nginx -t
+systemctl reload nginx
+
+5. Jogosultságok beállítása
+
+chown -R www-data:www-data /var/www/cypht
+find /var/www/cypht -type d -exec chmod 755 {} \;
+find /var/www/cypht -type f -exec chmod 644 {} \;
+
+6. Cypht első indítása
+http://mail.barack.hu
+
+7. IMAP/SMTP beállítása
+A Cypht moduláris, ezért a beállítások a következő fájlban vannak:
+
+nano /var/www/cypht/config/config.ini
+
+[imap]
+server = "mail.barack.hu"
+port = 993
+tls = true
+
+[smtp]
+server = "mail.barack.hu"
+port = 25
+tls = false
+
+
+systemctl status dovecot
+systemctl status postfix
+
+8. Tesztelés
+openssl s_client -connect mail.example.com:993
+SMTP kapcsolat teszt:
+openssl s_client -connect mail.barack.hu:587 -starttls smtp // ha van tls
+
+
