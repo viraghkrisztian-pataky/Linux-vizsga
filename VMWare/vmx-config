@@ -1,3 +1,5 @@
+A virtuális gép VMX fájl végére, de ügyelve, hogy ne legyen duplikált sor.
+
 CSAK HA NINCS:
 mks.enable3d = "TRUE"
 svga.vramSize = "268435456"
