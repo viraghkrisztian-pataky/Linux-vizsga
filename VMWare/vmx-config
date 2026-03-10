@@ -1,0 +1,17 @@
+mks.enable3d = "TRUE"
+svga.vramSize = "268435456"
+
+MemTrimRate = "0"
+
+mainMem.useNamedFile = "FALSE"
+
+prefvmx.useRecommendedLockedMemSize = "TRUE"
+
+sched.mem.pshare.enable = "FALSE"
+
+disk.EnableUUID = "TRUE"
+diskLib.dataCacheMaxSize = "2048"
+diskLib.dataCacheMaxReadAheadSize = "16"
+diskLib.dataCacheMinReadAheadSize = "4"
+diskLib.dataCachePageSize = "4096"
+diskLib.maxUnsyncedWrites = "64"
